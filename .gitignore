@@ -4,6 +4,7 @@
 out
 bin
 obj
+publish
 *.nupkg
 *.lock.json
 *.nuget.props
