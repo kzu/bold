@@ -10,101 +10,247 @@
             Make a 𝐛𝐨𝐥𝐝 statement, even if the app/site won't let you apply any formatting.
         </p>
         <p>
-            Just copy the converted text (it will be plain Unicode text) and paste it in the app/site 
+            Just copy the converted text (it will be plain Unicode text) and paste it in the app/site
             (i.e. <a href="https://twitter.com/kzu/status/1329883359154155521?s=20">Twitter!</a>).
         </p>
+        <div class="btn-toolbar">
+            <div class="ck-button">
+                <label title="Bold">
+                    <input type="checkbox" title="Bold" @bind="Bold"><span>𝐁</span>
+                </label>
+            </div>
+            <div class="ck-button">
+                <label title="Italic">
+                    <input type="checkbox" title="Italic" @bind="Italic"><span>𝑰</span>
+                </label>
+            </div>
+        </div>
         <p>
             <input type="text" @bind:event="oninput" @bind="Text" />
+            <button title="Copy" class="far fa-copy" onclick="copy('@output')" value="Copy" />
+            <span>@output</span>&nbsp;&nbsp;<span id="copied" style="opacity: 0">Copied to clipboard!</span>
         </p>
-        <p>@bold</p>
-        <p>@unicode</p>
-        <a href="https://github.com/kzu/bold"><img src="https://img.shields.io/badge/-source-181717.svg?logo=GitHub" alt="GitHub"></a>
+    </div>
+    <div>
+        <p>
+            <a href="https://github.com/kzu/bold"><img src="https://img.shields.io/badge/-source-181717.svg?logo=GitHub" alt="GitHub"></a>
+        </p>
     </div>
 </div>
 
 @code {
-    Dictionary<char, (string bold, string unicode)> map = new()
-    {
-        { 'a', ("𝐚", "U+1D41A") },
-        { 'b', ("𝐛", "U+1D41B") },
-        { 'c', ("𝐜", "U+1D41C") },
-        { 'd', ("𝐝", "U+1D41D") },
-        { 'e', ("𝐞", "U+1D41E") },
-        { 'f', ("𝐟", "U+1D41F") },
-        { 'g', ("𝐠", "U+1D420") },
-        { 'h', ("𝐡", "U+1D421") },
-        { 'i', ("𝐢", "U+1D422") },
-        { 'j', ("𝐣", "U+1D423") },
-        { 'k', ("𝐤", "U+1D424") },
-        { 'l', ("𝐥", "U+1D425") },
-        { 'm', ("𝐦", "U+1D426") },
-        { 'n', ("𝐧", "U+1D427") },
-        { 'o', ("𝐨", "U+1D428") },
-        { 'p', ("𝐩", "U+1D429") },
-        { 'q', ("𝐪", "U+1D42A") },
-        { 'r', ("𝐫", "U+1D42B") },
-        { 's', ("𝐬", "U+1D42C") },
-        { 't', ("𝐭", "U+1D42D") },
-        { 'u', ("𝐮", "U+1D42E") },
-        { 'v', ("𝐯", "U+1D42F") },
-        { 'w', ("𝐰", "U+1D430") },
-        { 'x', ("𝐱", "U+1D431") },
-        { 'y', ("𝐲", "U+1D432") },
-        { 'z', ("𝐳", "U+1D433") },
-
-        { 'A', ("𝐀", "U+1D400") },
-        { 'B', ("𝐁", "U+1D401") },
-        { 'C', ("𝐂", "U+1D402") },
-        { 'D', ("𝐃", "U+1D403") },
-        { 'E', ("𝐄", "U+1D404") },
-        { 'F', ("𝐅", "U+1D405") },
-        { 'G', ("𝐆", "U+1D406") },
-        { 'H', ("𝐇", "U+1D407") },
-        { 'I', ("𝐈", "U+1D408") },
-        { 'J', ("𝐉", "U+1D409") },
-        { 'K', ("𝐊", "U+1D40A") },
-        { 'L', ("𝐋", "U+1D40B") },
-        { 'M', ("𝐌", "U+1D40C") },
-        { 'N', ("𝐍", "U+1D40D") },
-        { 'O', ("𝐎", "U+1D40E") },
-        { 'P', ("𝐏", "U+1D40F") },
-        { 'Q', ("𝐐", "U+1D410") },
-        { 'R', ("𝐑", "U+1D411") },
-        { 'S', ("𝐒", "U+1D412") },
-        { 'T', ("𝐓", "U+1D413") },
-        { 'U', ("𝐔", "U+1D414") },
-        { 'V', ("𝐕", "U+1D415") },
-        { 'W', ("𝐖", "U+1D416") },
-        { 'X', ("𝐗", "U+1D417") },
-        { 'Y', ("𝐘", "U+1D418") },
-        { 'Z', ("𝐙", "U+1D419") },
-    };
-
+    bool bold = true;
+    bool italic = false;
     string source = "";
-    string bold = "";
-    string unicode = "";
+    string output = " ";
+
+    public bool Bold
+    {
+        get => bold;
+        set { bold = value; ApplyFormat(); }
+    }
+
+    public bool Italic
+    {
+        get => italic;
+        set { italic = value; ApplyFormat(); }
+    }
 
     public string Text
     {
         get => source;
-        set
+        set { source = value; ApplyFormat(); }
+    }
+
+    void ApplyFormat()
+    {
+        var map =
+            bold && italic ? boldItalicMap :
+            bold ? boldMap :
+            italic ? italicMap :
+            noMap;
+
+        output = "";
+
+        foreach (var c in source)
         {
-            source = value;
-            bold = "";
-            unicode = "";
-            foreach (var c in source)
-            {
-                if (map.TryGetValue(c, out var u))
-                {
-                    bold += u.bold;
-                    unicode += u.unicode + " ";
-                }
-                else
-                {
-                    bold += c;
-                    unicode += c + " ";
-                }
-            }
+            if (map.TryGetValue(c, out var u))
+                output += u;
+            else
+                output += c;
         }
     }
+
+    Dictionary<char, string> noMap = new();
+
+    Dictionary<char, string> boldMap = new()
+    {
+        { 'a', "𝐚" },
+        { 'b', "𝐛" },
+        { 'c', "𝐜" },
+        { 'd', "𝐝" },
+        { 'e', "𝐞" },
+        { 'f', "𝐟" },
+        { 'g', "𝐠" },
+        { 'h', "𝐡" },
+        { 'i', "𝐢" },
+        { 'j', "𝐣" },
+        { 'k', "𝐤" },
+        { 'l', "𝐥" },
+        { 'm', "𝐦" },
+        { 'n', "𝐧" },
+        { 'o', "𝐨" },
+        { 'p', "𝐩" },
+        { 'q', "𝐪" },
+        { 'r', "𝐫" },
+        { 's', "𝐬" },
+        { 't', "𝐭" },
+        { 'u', "𝐮" },
+        { 'v', "𝐯" },
+        { 'w', "𝐰" },
+        { 'x', "𝐱" },
+        { 'y', "𝐲" },
+        { 'z', "𝐳" },
+
+        { 'A', "𝐀" },
+        { 'B', "𝐁" },
+        { 'C', "𝐂" },
+        { 'D', "𝐃" },
+        { 'E', "𝐄" },
+        { 'F', "𝐅" },
+        { 'G', "𝐆" },
+        { 'H', "𝐇" },
+        { 'I', "𝐈" },
+        { 'J', "𝐉" },
+        { 'K', "𝐊" },
+        { 'L', "𝐋" },
+        { 'M', "𝐌" },
+        { 'N', "𝐍" },
+        { 'O', "𝐎" },
+        { 'P', "𝐏" },
+        { 'Q', "𝐐" },
+        { 'R', "𝐑" },
+        { 'S', "𝐒" },
+        { 'T', "𝐓" },
+        { 'U', "𝐔" },
+        { 'V', "𝐕" },
+        { 'W', "𝐖" },
+        { 'X', "𝐗" },
+        { 'Y', "𝐘" },
+        { 'Z', "𝐙" },
+    };
+
+    Dictionary<char, string> italicMap = new()
+    {
+        { 'a', "𝑎" },
+        { 'b', "𝑏" },
+        { 'c', "𝑐" },
+        { 'd', "𝑑" },
+        { 'e', "𝑒" },
+        { 'f', "𝑓" },
+        { 'g', "𝑔" },
+        { 'h', "h" },
+        { 'i', "𝑖" },
+        { 'j', "𝑗" },
+        { 'k', "𝑘" },
+        { 'l', "𝑙" },
+        { 'm', "𝑚" },
+        { 'n', "𝑛" },
+        { 'o', "𝑜" },
+        { 'p', "𝑝" },
+        { 'q', "𝑞" },
+        { 'r', "𝑟" },
+        { 's', "𝑠" },
+        { 't', "𝑡" },
+        { 'u', "𝑢" },
+        { 'v', "𝑣" },
+        { 'w', "𝑤" },
+        { 'x', "𝑥" },
+        { 'y', "𝑦" },
+        { 'z', "𝑧" },
+
+        { 'A', "𝐴" },
+        { 'B', "𝐵" },
+        { 'C', "𝐶" },
+        { 'D', "𝐷" },
+        { 'E', "𝐸" },
+        { 'F', "𝐹" },
+        { 'G', "𝐺" },
+        { 'H', "𝐻" },
+        { 'I', "𝐼" },
+        { 'J', "𝐽" },
+        { 'K', "𝐾" },
+        { 'L', "𝐿" },
+        { 'M', "𝑀" },
+        { 'N', "𝑁" },
+        { 'O', "𝑂" },
+        { 'P', "𝑃" },
+        { 'Q', "𝑄" },
+        { 'R', "𝑅" },
+        { 'S', "𝑆" },
+        { 'T', "𝑇" },
+        { 'U', "𝑈" },
+        { 'V', "𝑉" },
+        { 'W', "𝑊" },
+        { 'X', "𝑋" },
+        { 'Y', "𝑌" },
+        { 'Z', "𝑍" },
+    };
+
+    Dictionary<char, string> boldItalicMap = new()
+    {
+        { 'a', "𝒂" },
+        { 'b', "𝒃" },
+        { 'c', "𝒄" },
+        { 'd', "𝒅" },
+        { 'e', "𝒆" },
+        { 'f', "𝒇" },
+        { 'g', "𝒈" },
+        { 'h', "𝒉" },
+        { 'i', "𝒊" },
+        { 'j', "𝒋" },
+        { 'k', "𝒌" },
+        { 'l', "𝒍" },
+        { 'm', "𝒎" },
+        { 'n', "𝒏" },
+        { 'o', "𝒐" },
+        { 'p', "𝒑" },
+        { 'q', "𝒒" },
+        { 'r', "𝒓" },
+        { 's', "𝒔" },
+        { 't', "𝒕" },
+        { 'u', "𝒖" },
+        { 'v', "𝒗" },
+        { 'w', "𝒘" },
+        { 'x', "𝒙" },
+        { 'y', "𝒚" },
+        { 'z', "𝒛" },
+
+        { 'A', "𝑨" },
+        { 'B', "𝑩" },
+        { 'C', "𝑪" },
+        { 'D', "𝑫" },
+        { 'E', "𝑬" },
+        { 'F', "𝑭" },
+        { 'G', "𝑮" },
+        { 'H', "𝑯" },
+        { 'I', "𝑰" },
+        { 'J', "𝑱" },
+        { 'K', "𝑲" },
+        { 'L', "𝑳" },
+        { 'M', "𝑴" },
+        { 'N', "𝑵" },
+        { 'O', "𝑶" },
+        { 'P', "𝑷" },
+        { 'Q', "𝑸" },
+        { 'R', "𝑹" },
+        { 'S', "𝑺" },
+        { 'T', "𝑻" },
+        { 'U', "𝑼" },
+        { 'V', "𝑽" },
+        { 'W', "𝑾" },
+        { 'X', "𝑿" },
+        { 'Y', "𝒀" },
+        { 'Z', "𝒁" },
+    };
 }

@@ -8,6 +8,7 @@
     <base href="/" />
     <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.1/css/all.css" integrity="sha384-vp86vTRFVJgpjF9jiIGPEEqYqlDwgyBgEF109VFjmqGmIY/Y4HV4d3Gp2irVfcrp" crossorigin="anonymous">
     <!-- Start Single Page Apps for GitHub Pages -->
     <script type="text/javascript">
         // Single Page Apps for GitHub Pages
@@ -39,6 +40,23 @@
         }(window.location))
     </script>
     <!-- End Single Page Apps for GitHub Pages -->
+    <script type="text/javascript">
+        function copy(text) {
+            var copyFrom = document.createElement('textarea');
+            copyFrom.textContent = text;
+            var body = document.getElementsByTagName('body')[0];
+            body.appendChild(copyFrom);
+            copyFrom.select();
+            document.execCommand('copy');
+            body.removeChild(copyFrom);
+            var copied = document.getElementById("copied");
+            if (copied) {
+                copied.classList.remove("fadeOut");
+                void copied.offsetWidth;
+                copied.classList.add("fadeOut");
+            }
+        }
+    </script>
 </head>
 
 <body>
